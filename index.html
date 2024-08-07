@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    
+    <div class="container mt-4">
+        <h2>Available Books <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">Create Book</button></h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Borrowed</th>
+                    <th>Borrowed Count</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="availableBooksTable">
+            </tbody>
+        </table>
+
+        <h2 class="mt-4">Borrowed Books</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Borrowed</th>
+                    <th>Borrowed Count</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="borrowedBooksTable">
+            </tbody>
+        </table>
+
+        <h2 class="mt-4">Most Borrowed Books</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Borrowed Count</th>
+                </tr>
+            </thead>
+            <tbody id="mostBorrowedBooksTable">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Create Book</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="category">Category:</label>
+                        <input type="text" id="category" name="category" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="title">Title:</label>
+                        <input type="text" id="title" name="title" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="author">Author:</label>
+                        <input type="text" id="author" name="author" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="createBook()">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./assets/js/popper.min.js"></script>
+    <script src="./assets/js/bootstrap.min.js"></script>
+    <script>
+        let bookCategories = [
+            {
+                'category': 'Fiction',
+                'title': 'To Kill a Mockingbird',
+                'author': 'Harper Lee',
+                'borrowedCount': 0,
+                'borrowed': false
+            },
+            {
+                'category': 'Fiction',
+                'title': '1984',
+                'author': 'George Orwell',
+                'borrowedCount': 0,
+                'borrowed': false
+            },
+            {
+                'category': 'Non-Fiction',
+                'title': 'Sapiens: A Brief History of Humankind',
+                'author': 'Yuval Noah Harari',
+                'borrowedCount': 0,
+                'borrowed': false
+            },
+            {
+                'category': 'Science Fiction',
+                'title': 'Dune',
+                'author': 'Frank Herbert',
+                'borrowedCount': 0,
+                'borrowed': false
+            },
+            {
+                'category': 'Science Fiction',
+                'title': 'Neuromancer',
+                'author': 'William Gibson',
+                'borrowedCount': 0,
+                'borrowed': false
+            }
+        ];
+
+        if (localStorage.getItem('bookCategoriesString') === null || localStorage.getItem('bookCategoriesString').trim()
+            .length === 0) {
+            localStorage.setItem('bookCategoriesString', JSON.stringify(bookCategories));
+        }
+
+        let bookCategoriesJson = JSON.parse(localStorage.getItem('bookCategoriesString'));
+
+        const availableBooksTable = document.querySelector('#availableBooksTable');
+        const borrowedBooksTable = document.querySelector('#borrowedBooksTable');
+        const mostBorrowedBooksTable = document.querySelector('#mostBorrowedBooksTable');
+        let compareBorrowed = 0;
+        let mostBorrowedBook = null;
+
+        setInterval(() => {
+            mostBorrowedBooksTable.innerHTML = '';
+
+            let tableRow = document.createElement('tr');
+            
+            let categoryCell = document.createElement('td');
+            categoryCell.textContent = mostBorrowedBook.category;
+            tableRow.appendChild(categoryCell);
+
+            let titleCell = document.createElement('td');
+            titleCell.textContent = mostBorrowedBook.title;
+            tableRow.appendChild(titleCell);
+
+            let authorCell = document.createElement('td');
+            authorCell.textContent = mostBorrowedBook.author;
+            tableRow.appendChild(authorCell);
+
+            let borrowedCountCell = document.createElement('td');
+            borrowedCountCell.textContent = mostBorrowedBook.borrowedCount;
+            borrowedCountCell.style.textAlign = 'center';
+            tableRow.appendChild(borrowedCountCell);
+
+            mostBorrowedBooksTable.appendChild(tableRow);
+
+        }, 5000);
+
+        const updateTables = () => {
+            availableBooksTable.innerHTML = '';
+            borrowedBooksTable.innerHTML = '';
+
+            bookCategoriesJson.forEach(book => {
+                let tableRow = document.createElement('tr');
+
+                let categoryCell = document.createElement('td');
+                categoryCell.textContent = book.category;
+                tableRow.appendChild(categoryCell);
+
+                let titleCell = document.createElement('td');
+                titleCell.textContent = book.title;
+                tableRow.appendChild(titleCell);
+
+                let authorCell = document.createElement('td');
+                authorCell.textContent = book.author;
+                tableRow.appendChild(authorCell);
+
+                let borrowedCell = document.createElement('td');
+                borrowedCell.textContent = book.borrowed ? 'Yes' : 'No';
+                borrowedCell.style.textAlign = 'center';
+                tableRow.appendChild(borrowedCell);
+
+                let borrowedCountCell = document.createElement('td');
+                borrowedCountCell.textContent = book.borrowedCount;
+                borrowedCountCell.style.textAlign = 'center';
+                tableRow.appendChild(borrowedCountCell);
+
+
+                if(compareBorrowed < book.borrowedCount)
+                {
+                    compareBorrowed = book.borrowedCount;
+                    mostBorrowedBook = book;
+                }
+
+                // console.log(mostBorrowedBook);
+
+                if (!book.borrowed) {
+
+                    // Borrow Button
+                    let actionCell = document.createElement('td');
+                    let borrowButton = document.createElement('button');
+                    borrowButton.style.backgroundColor = 'green';
+                    borrowButton.style.color = 'white';
+                    borrowButton.style.cursor = 'pointer';
+                    borrowButton.textContent = 'Borrow';
+                    borrowButton.addEventListener('click', () => {
+                        borrowBook(book.title);
+                    });
+                    actionCell.appendChild(borrowButton);
+                    tableRow.appendChild(actionCell);
+
+                    // Remove Button
+                    let removeButton = document.createElement('button');
+                    removeButton.style.backgroundColor = 'red';
+                    removeButton.style.color = 'white';
+                    removeButton.style.cursor = 'pointer';
+                    removeButton.textContent = 'Remove';
+                    removeButton.addEventListener('click', () => {
+                        removeBook(book.title);
+                        tableRow.remove();
+                    });
+                    actionCell.appendChild(removeButton);
+
+                    availableBooksTable.appendChild(tableRow);
+                } else {
+                    // Unborrow Button
+                    let actionCell = document.createElement('td');
+                    let unborrowButton = document.createElement('button');
+                    unborrowButton.style.backgroundColor = 'red';
+                    unborrowButton.style.color = 'white';
+                    unborrowButton.style.cursor = 'pointer';
+                    unborrowButton.textContent = 'Unborrow';
+                    unborrowButton.addEventListener('click', () => {
+                        unborrowBook(book.title);
+                    });
+                    actionCell.appendChild(unborrowButton);
+                    tableRow.appendChild(actionCell);
+
+                    // Remove Button
+                    let removeButton = document.createElement('button');
+                    removeButton.style.backgroundColor = 'red';
+                    removeButton.style.color = 'white';
+                    removeButton.style.cursor = 'pointer';
+                    removeButton.textContent = 'Remove';
+                    removeButton.addEventListener('click', () => {
+                        removeBook(book.title);
+                        tableRow.remove();
+                    });
+                    actionCell.appendChild(removeButton);
+
+                    borrowedBooksTable.appendChild(tableRow);
+                }
+            });
+        };
+
+        const borrowBook = (title) => {
+            const book = bookCategoriesJson.find(book => book.title === title);
+            if (book) {
+                book.borrowed = true;
+                book.borrowedCount++;
+                updateTables();
+            }
+
+            localStorage.setItem('bookCategoriesString', JSON.stringify(bookCategoriesJson));
+        };
+
+        const unborrowBook = (title) => {
+            const book = bookCategoriesJson.find(book => {
+                return book.title === title;
+            });
+            if (book) {
+                book.borrowed = false;
+                updateTables();
+            }
+
+            localStorage.setItem('bookCategoriesString', JSON.stringify(bookCategoriesJson));
+        }
+
+        const removeBook = (title) => {
+            bookCategories = bookCategoriesJson.filter(book => {
+                return book.title !== title;
+            });
+            console.log(bookCategories);
+
+            localStorage.setItem('bookCategoriesString', JSON.stringify(bookCategories));
+        }
+
+        // Create book
+        const createBook = () => {
+            let categoryEl = document.getElementById('category');
+            let titleEl = document.getElementById('title');
+            let authorEl = document.getElementById('author');
+
+            let categoryValue = categoryEl.value;
+            let titleValue = titleEl.value;
+            let authorValue = authorEl.value;
+
+            if(categoryValue.length > 3 && titleValue.length > 3 && authorValue.length > 3)
+            {
+                let newBook = {
+                    'category': categoryValue,
+                    'title': titleValue,
+                    'author': authorValue,
+                    'borrowedCount': 0,
+                    'borrowed': false
+                };
+
+                // Clear data
+                categoryEl.value = '';
+                titleEl.value = '';
+                authorEl.value = '';
+    
+                bookCategoriesJson.push(newBook);
+                localStorage.setItem('bookCategoriesString', JSON.stringify(bookCategoriesJson));
+                location.reload();
+    
+            }
+        }
+
+        // Initialize the tables
+        updateTables();
+    </script>
+</body>
+
+</html>
